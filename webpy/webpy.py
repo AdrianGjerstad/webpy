@@ -39,7 +39,11 @@ class _WP_Server(HTTPServer):
 ########################################
 
 def _WP_ServerSpawner():
-  pass
+  global httpd
+  try:
+    httpd.serve_forever()
+  except KeyboardInterrupt:
+    httpd.shutdown()
 
 ########################################
 # MAIN                                 #
@@ -47,6 +51,16 @@ def _WP_ServerSpawner():
 
 def main(conf):
   global httpd
+  httpd = _WP_Server(('127.0.0.1', 9009), _WP_RequestHandler)
+
+  server_proc = multiprocessing.Process(target=_WP_ServerSpawner)
+  server_proc.start()
+
+  try:
+    server_proc.join()
+  except KeyboardInterrupt:
+    server_proc.terminate()
+    server_proc.join()
 
   return 0
 
